@@ -218,20 +218,18 @@
 
 <script>
     // ==================== 配置 ====================
-    const BIN_ID = "69f25f45aaba882197520163";        // 替换为你的Bin ID
-    const MASTER_KEY = "$2a$10$aNfA1/EAkAoOWria527YsuiTwYMDgT54vDqutw3kHJR/s8Ou2Yg0u"; // 替换为你的Master Key
+    const BIN_ID = "69f25f45aaba882197520163";
+    const MASTER_KEY = "$2a$10$aNfA1/EAkAoOWria527YsuiTwYMDgT54vDqutw3kHJR/s8Ou2Yg0u"; // JSONbin 的 API 密钥，只用于写入
+    const ADMIN_PASSWORD = "Sherry123!"; // 主播管理时输入的密码
     const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-    // 当前数据
     let config = { title: "夏利芮Sherry的歌单", avatar: "", songs: [] };
     let currentType = "全部";
 
-    // 从JSONbin加载
+    // 从 JSONbin 公开读取（无需密钥）
     async function loadConfig() {
         try {
-            const res = await fetch(BIN_URL, {
-                headers: { 'X-Access-Key': MASTER_KEY }  // 读操作也可用master key，或设为公开无需key
-            });
+            const res = await fetch(`${BIN_URL}/latest`);
             if (!res.ok) throw new Error("加载失败");
             const json = await res.json();
             config = json.record;
@@ -254,7 +252,6 @@
         renderSongs();
     }
 
-    // 渲染类型标签和歌单列表
     function renderSongs() {
         const keyword = document.getElementById("searchInput").value.toLowerCase();
         const songs = config.songs || [];
@@ -274,7 +271,6 @@
             </div>`
         ).join("");
 
-        // 更新类型标签
         const types = ["全部", ...new Set(songs.map(s => s.type))];
         const tagContainer = document.getElementById("tagContainer");
         tagContainer.innerHTML = types.map(t =>
@@ -317,7 +313,6 @@
         document.getElementById("adminOverlay").style.display = "none";
     }
 
-    // 管理面板内显示歌曲列表，带删除
     function renderManageList() {
         const list = document.getElementById("songManageList");
         list.innerHTML = config.songs.map((s,i) =>
@@ -344,14 +339,13 @@
         renderManageList();
     }
 
-    // 保存配置到JSONbin
+    // 保存到 JSONbin（使用 MASTER_KEY，管理密码用 ADMIN_PASSWORD）
     async function saveConfig() {
         const key = document.getElementById("adminKey").value.trim();
-        if (key !== MASTER_KEY) {
+        if (key !== ADMIN_PASSWORD) {
             alert("金钥错误！");
             return;
         }
-        // 读取管理面板的标题和头像
         config.title = document.getElementById("adminTitle").value.trim();
         config.avatar = document.getElementById("adminAvatar").value.trim();
 
