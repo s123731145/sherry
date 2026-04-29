@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>点歌台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", sans-serif; background: #f7f9fc; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { max-width: 500px; width: 100%; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); padding: 28px 20px; }
+    h2 { text-align: center; margin-bottom: 20px; color: #333; font-size: 22px; }
+    .search-box { display: flex; gap: 8px; margin-bottom: 14px; }
+    .search-box input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; outline: none; }
+    .search-box button { background: #4a90e2; color: white; border: none; border-radius: 10px; padding: 0 18px; font-size: 15px; cursor: pointer; white-space: nowrap; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .tag { background: #eef2f7; color: #555; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; user-select: none; }
+    .tag.active { background: #4a90e2; color: white; }
+    .note { color: #999; font-size: 12px; margin-bottom: 12px; }
+    .song-list { max-height: 400px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
+    .song-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 6px; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+    .song-item:hover { background: #f0f5ff; }
+    .song-name { color: #333; font-weight: 500; font-size: 15px; }
+    .song-type { color: #999; font-size: 12px; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; }
+    .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 999; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎵 主播的点歌台</h2>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="请输入歌名" oninput="renderSongs()">
+      <button onclick="randomSong()">🎲 随机选歌</button>
+    </div>
+    <div class="tags" id="tagContainer">
+      <span class="tag active" onclick="filterBy('全部')">全部</span>
+    </div>
+    <div class="note">点击歌名即可复制点歌命令至剪贴板</div>
+    <div class="song-list" id="songList"></div>
+  </div>
+  <div class="toast" id="toast">✅ 已复制：点歌 歌名</div>
+
+  <script>
+    // ★★★ 在这里修改成你自己的歌单 ★★★
+    // 格式：{ name: "歌曲名", type: "类型" }
+    const songData = [
+      { name: "123木头人", type: "流行" },
+      { name: "123我塞你", type: "流行" },
+      { name: "36.5℃", type: "流行" },
+      { name: "9420", type: "流行" },
+      { name: "阿楚姑娘", type: "流行" },
+      { name: "阿肝", type: "流行" },
+      { name: "红莲华", type: "日语" },
+      { name: "Lemon", type: "日语" },
+      { name: "芒种", type: "古风" },
+      { name: "牵丝戏", type: "古风" },
+      { name: "Love Story", type: "英文" }
+    ];
+
+    let currentType = "全部";
+
+    // 初始化标签
+    const types = ["全部", ...new Set(songData.map(s => s.type))];
+    const tagContainer = document.getElementById("tagContainer");
+    tagContainer.innerHTML = types.map(t => 
+      `<span class="tag ${t==='全部'?'active':''}" onclick="filterBy('${t}')">${t}</span>`
+    ).join("");
+
+    function filterBy(type) {
+      currentType = type;
+      document.querySelectorAll('.tag').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+      renderSongs();
+    }
+
+    function renderSongs() {
+      const keyword = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = songData.filter(s =>
+        (currentType === "全部" || s.type === currentType) &&
+        s.name.toLowerCase().includes(keyword)
+      );
+      const list = document.getElementById("songList");
+      if (filtered.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#999;padding:30px;">🤷 没有找到歌曲</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(s =>
+        `<div class="song-item" onclick="copyCommand('${s.name}')">
+          <span class="song-name">${s.name}</span>
+          <span class="song-type">${s.type}</span>
+        </div>`
+      ).join("");
+    }
+
+    function copyCommand(songName) {
+      const command = `点歌 ${songName}`;
+      navigator.clipboard.writeText(command).then(() => {
+        showToast(`✅ 已复制：${command}`);
+      }).catch(() => {
+        // 降级方案
+        const textarea = document.createElement('textarea');
+        textarea.value = command;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast(`✅ 已复制：${command}`);
+      });
+    }
+
+    function randomSong() {
+      const randomItem = songData[Math.floor(Math.random() * songData.length)];
+      copyCommand(randomItem.name);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    // 初始渲染
+    renderSongs();
+  </script>
+</body>
+</html>
