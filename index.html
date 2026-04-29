@@ -1,127 +1,380 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>点歌台</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: "Microsoft YaHei", sans-serif; background: #f7f9fc; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .container { max-width: 500px; width: 100%; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); padding: 28px 20px; }
-    h2 { text-align: center; margin-bottom: 20px; color: #333; font-size: 22px; }
-    .search-box { display: flex; gap: 8px; margin-bottom: 14px; }
-    .search-box input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; outline: none; }
-    .search-box button { background: #4a90e2; color: white; border: none; border-radius: 10px; padding: 0 18px; font-size: 15px; cursor: pointer; white-space: nowrap; }
-    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-    .tag { background: #eef2f7; color: #555; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; user-select: none; }
-    .tag.active { background: #4a90e2; color: white; }
-    .note { color: #999; font-size: 12px; margin-bottom: 12px; }
-    .song-list { max-height: 400px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
-    .song-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 6px; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
-    .song-item:hover { background: #f0f5ff; }
-    .song-name { color: #333; font-weight: 500; font-size: 15px; }
-    .song-type { color: #999; font-size: 12px; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; }
-    .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 999; }
-    .toast.show { opacity: 1; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>夏利芮Sherry的歌单</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(145deg, #1a0c0c, #2a1a1a);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding: 16px;
+        }
+        .container {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+        .card {
+            background: #fef5e8;
+            border-radius: 40px;
+            padding: 24px 20px 32px;
+            text-align: center;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+        }
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 12px;
+            display: block;
+            background: #ffcfaa;
+            border: 3px solid #e03a1a;
+        }
+        h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #ff8c5a, #e03a1a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+        .sub {
+            color: #b35c3a;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ffcfaa;
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0c5a8;
+            border-radius: 30px;
+            font-size: 15px;
+            outline: none;
+            background: white;
+            color: #2a1a1a;
+        }
+        .search-box input::placeholder { color: #b8a08a; }
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 12px 0 16px;
+        }
+        .tag {
+            background: #ffcfaa;
+            color: #5a2a1a;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+        }
+        .tag.active {
+            background: #e03a1a;
+            color: white;
+            font-weight: bold;
+        }
+        .song-list {
+            max-height: 380px;
+            overflow-y: auto;
+            border-top: 2px solid #ffcfaa;
+            padding-top: 10px;
+            margin: 10px 0;
+        }
+        .song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 12px;
+            margin: 4px 0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .song-item:hover {
+            background: #ffedd7;
+            transform: scale(1.01);
+        }
+        .song-name { color: #2a1a1a; font-weight: 600; font-size: 16px; }
+        .song-type { color: #b35c3a; font-size: 12px; background: rgba(255,207,170,0.5); padding: 3px 14px; border-radius: 20px; }
+        .note { color: #a8684a; font-size: 0.75rem; margin-top: 10px; text-align: center; }
+        
+        .toast {
+            position: fixed;
+            top: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(20,10,10,0.85);
+            color: #ffcf8a;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: 15px;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show { opacity: 1; }
+
+        /* 管理面板样式 */
+        .admin-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        .admin-panel {
+            background: #1f1410;
+            padding: 24px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 400px;
+            color: #ffcfaa;
+            text-align: left;
+        }
+        .admin-panel h2 { text-align: center; margin-bottom: 16px; }
+        .admin-panel label { display: block; margin: 10px 0 4px; font-size: 14px; }
+        .admin-panel input, .admin-panel select {
+            width: 100%; padding: 8px 12px; border-radius: 20px; border: none; outline: none;
+        }
+        .admin-panel button {
+            background: #e03a1a; color: white; border: none; padding: 10px 20px;
+            border-radius: 30px; margin-top: 16px; width: 100%; font-size: 16px; cursor: pointer;
+        }
+        .song-entry { display: flex; gap: 6px; margin: 8px 0; align-items: center; }
+        .song-entry input { flex: 1; }
+        .song-entry button { width: auto; padding: 8px 12px; margin: 0; background: #c0392b; }
+        #adminTrigger {
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #a8684a;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🎵 主播的点歌台</h2>
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="请输入歌名" oninput="renderSongs()">
-      <button onclick="randomSong()">🎲 随机选歌</button>
-    </div>
-    <div class="tags" id="tagContainer">
-      <span class="tag active" onclick="filterBy('全部')">全部</span>
-    </div>
-    <div class="note">点击歌名即可复制点歌命令至剪贴板</div>
-    <div class="song-list" id="songList"></div>
-  </div>
-  <div class="toast" id="toast">✅ 已复制：点歌 歌名</div>
+<div class="container">
+    <div class="card">
+        <img id="avatarImg" class="avatar" src="" alt="头像" style="display:none;">
+        <h1 id="titleText">加载中...</h1>
+        <div class="sub">点击歌名即可复制点歌命令，粘贴到直播间</div>
 
-  <script>
-    // ★★★ 在这里修改成你自己的歌单 ★★★
-    // 格式：{ name: "歌曲名", type: "类型" }
-    const songData = [
-      { name: "123木头人", type: "流行" },
-      { name: "123我塞你", type: "流行" },
-      { name: "36.5℃", type: "流行" },
-      { name: "9420", type: "流行" },
-      { name: "阿楚姑娘", type: "流行" },
-      { name: "阿肝", type: "流行" },
-      { name: "红莲华", type: "日语" },
-      { name: "Lemon", type: "日语" },
-      { name: "芒种", type: "古风" },
-      { name: "牵丝戏", type: "古风" },
-      { name: "Love Story", type: "英文" }
-    ];
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜歌名" oninput="renderSongs()">
+        </div>
+        <div class="tags" id="tagContainer"></div>
+        <div class="song-list" id="songList"></div>
+        <div class="note">✨ 点击歌曲自动复制“点歌 歌名” ✨</div>
+        <div id="adminTrigger" onclick="openAdmin()">🔑 管理歌单</div>
+    </div>
+</div>
 
+<div class="toast" id="toast"></div>
+
+<!-- 管理面板 -->
+<div class="admin-overlay" id="adminOverlay">
+    <div class="admin-panel">
+        <h2>管理歌单</h2>
+        <label>金钥</label>
+        <input type="password" id="adminKey" placeholder="输入管理密钥">
+        <label>标题</label>
+        <input type="text" id="adminTitle" placeholder="夏利芮Sherry的歌单">
+        <label>头像URL</label>
+        <input type="text" id="adminAvatar" placeholder="https://...图片链接">
+        <hr style="border-color:#555; margin:16px 0;">
+        <label>新增歌曲</label>
+        <div class="song-entry">
+            <input type="text" id="newSongName" placeholder="歌名">
+            <input type="text" id="newSongType" placeholder="类型">
+            <button onclick="addSong()">+</button>
+        </div>
+        <label>现有歌单 (<span id="songCount">0</span>首)</label>
+        <div id="songManageList" style="max-height:120px; overflow-y:auto; margin-bottom:10px;"></div>
+        <button onclick="saveConfig()">💾 保存全部修改</button>
+        <button onclick="closeAdmin()" style="background:#555; margin-top:8px;">取消</button>
+    </div>
+</div>
+
+<script>
+    // ==================== 配置 ====================
+    const BIN_ID = "你的BIN_ID";        // 替换为你的Bin ID
+    const MASTER_KEY = "你的MASTER_KEY"; // 替换为你的Master Key
+    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+    // 当前数据
+    let config = { title: "夏利芮Sherry的歌单", avatar: "", songs: [] };
     let currentType = "全部";
 
-    // 初始化标签
-    const types = ["全部", ...new Set(songData.map(s => s.type))];
-    const tagContainer = document.getElementById("tagContainer");
-    tagContainer.innerHTML = types.map(t => 
-      `<span class="tag ${t==='全部'?'active':''}" onclick="filterBy('${t}')">${t}</span>`
-    ).join("");
-
-    function filterBy(type) {
-      currentType = type;
-      document.querySelectorAll('.tag').forEach(el => el.classList.remove('active'));
-      event.target.classList.add('active');
-      renderSongs();
+    // 从JSONbin加载
+    async function loadConfig() {
+        try {
+            const res = await fetch(BIN_URL, {
+                headers: { 'X-Access-Key': MASTER_KEY }  // 读操作也可用master key，或设为公开无需key
+            });
+            if (!res.ok) throw new Error("加载失败");
+            const json = await res.json();
+            config = json.record;
+            updateUI();
+        } catch (e) {
+            alert("无法加载歌单，请检查网络或Bin配置！");
+        }
     }
 
+    function updateUI() {
+        document.getElementById("titleText").textContent = config.title || "点歌台";
+        document.title = config.title || "点歌台";
+        const avatarImg = document.getElementById("avatarImg");
+        if (config.avatar) {
+            avatarImg.src = config.avatar;
+            avatarImg.style.display = "block";
+        } else {
+            avatarImg.style.display = "none";
+        }
+        renderSongs();
+    }
+
+    // 渲染类型标签和歌单列表
     function renderSongs() {
-      const keyword = document.getElementById("searchInput").value.toLowerCase();
-      const filtered = songData.filter(s =>
-        (currentType === "全部" || s.type === currentType) &&
-        s.name.toLowerCase().includes(keyword)
-      );
-      const list = document.getElementById("songList");
-      if (filtered.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#999;padding:30px;">🤷 没有找到歌曲</div>';
-        return;
-      }
-      list.innerHTML = filtered.map(s =>
-        `<div class="song-item" onclick="copyCommand('${s.name}')">
-          <span class="song-name">${s.name}</span>
-          <span class="song-type">${s.type}</span>
-        </div>`
-      ).join("");
+        const keyword = document.getElementById("searchInput").value.toLowerCase();
+        const songs = config.songs || [];
+        const filtered = songs.filter(s =>
+            (currentType === "全部" || s.type === currentType) &&
+            s.name.toLowerCase().includes(keyword)
+        );
+        const list = document.getElementById("songList");
+        if (filtered.length === 0) {
+            list.innerHTML = '<div style="text-align:center;color:#b8a08a;padding:30px;">🤷 没有找到歌曲</div>';
+            return;
+        }
+        list.innerHTML = filtered.map(s =>
+            `<div class="song-item" onclick="copyCommand('${s.name}')">
+                <span class="song-name">${s.name}</span>
+                <span class="song-type">${s.type}</span>
+            </div>`
+        ).join("");
+
+        // 更新类型标签
+        const types = ["全部", ...new Set(songs.map(s => s.type))];
+        const tagContainer = document.getElementById("tagContainer");
+        tagContainer.innerHTML = types.map(t =>
+            `<span class="tag ${t===currentType?'active':''}" onclick="filterBy('${t}')">${t}</span>`
+        ).join("");
+    }
+
+    function filterBy(type) {
+        currentType = type;
+        document.querySelectorAll('.tag').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+        renderSongs();
     }
 
     function copyCommand(songName) {
-      const command = `点歌 ${songName}`;
-      navigator.clipboard.writeText(command).then(() => {
-        showToast(`✅ 已复制：${command}`);
-      }).catch(() => {
-        // 降级方案
-        const textarea = document.createElement('textarea');
-        textarea.value = command;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast(`✅ 已复制：${command}`);
-      });
-    }
-
-    function randomSong() {
-      const randomItem = songData[Math.floor(Math.random() * songData.length)];
-      copyCommand(randomItem.name);
+        const command = `点歌 ${songName}`;
+        navigator.clipboard.writeText(command).then(() => {
+            showToast(`✅ 已复制：${command}`);
+        }).catch(() => {
+            showToast("复制失败，请手动复制");
+        });
     }
 
     function showToast(msg) {
-      const toast = document.getElementById("toast");
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 1800);
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 1800);
     }
 
-    // 初始渲染
-    renderSongs();
-  </script>
+    // ==================== 管理功能 ====================
+    function openAdmin() {
+        document.getElementById("adminOverlay").style.display = "flex";
+        document.getElementById("adminTitle").value = config.title;
+        document.getElementById("adminAvatar").value = config.avatar || "";
+        renderManageList();
+    }
+
+    function closeAdmin() {
+        document.getElementById("adminOverlay").style.display = "none";
+    }
+
+    // 管理面板内显示歌曲列表，带删除
+    function renderManageList() {
+        const list = document.getElementById("songManageList");
+        list.innerHTML = config.songs.map((s,i) =>
+            `<div style="display:flex; justify-content:space-between; margin:3px 0;">
+                <span>${s.name} (${s.type})</span>
+                <span style="color:red; cursor:pointer;" onclick="deleteSong(${i})">🗑️</span>
+            </div>`
+        ).join("");
+        document.getElementById("songCount").textContent = config.songs.length;
+    }
+
+    function addSong() {
+        const name = document.getElementById("newSongName").value.trim();
+        const type = document.getElementById("newSongType").value.trim();
+        if (!name || !type) return alert("请填写歌名和类型");
+        config.songs.push({ name, type });
+        document.getElementById("newSongName").value = "";
+        document.getElementById("newSongType").value = "";
+        renderManageList();
+    }
+
+    function deleteSong(index) {
+        config.songs.splice(index, 1);
+        renderManageList();
+    }
+
+    // 保存配置到JSONbin
+    async function saveConfig() {
+        const key = document.getElementById("adminKey").value.trim();
+        if (key !== MASTER_KEY) {
+            alert("金钥错误！");
+            return;
+        }
+        // 读取管理面板的标题和头像
+        config.title = document.getElementById("adminTitle").value.trim();
+        config.avatar = document.getElementById("adminAvatar").value.trim();
+
+        try {
+            const res = await fetch(BIN_URL, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': MASTER_KEY
+                },
+                body: JSON.stringify(config)
+            });
+            if (!res.ok) throw new Error("保存失败");
+            alert("✅ 保存成功！刷新后观众即可看到最新内容。");
+            closeAdmin();
+            updateUI();
+        } catch (e) {
+            alert("保存失败，请检查网络或金钥是否正确。");
+        }
+    }
+
+    // 初始加载
+    loadConfig();
+</script>
 </body>
 </html>
